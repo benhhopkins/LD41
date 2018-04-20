@@ -1,5 +1,6 @@
 /// <reference path="../defs/phaser.d.ts"/>
 
+import LoadScene from './scenes/load';
 import TitleScene from './scenes/title';
 import GameScene from './scenes/game';
 
@@ -56,6 +57,7 @@ const game = new Phaser.Game({
     //    }
     // },
     scene: [
+        LoadScene,
         TitleScene,
         GameScene
     ]

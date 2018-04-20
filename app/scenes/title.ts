@@ -1,8 +1,6 @@
 /// <reference path="../../defs/phaser.d.ts"/>
 
 class TitleScene extends Phaser.Scene {
-
-    private progressBar: null;
     private startKey: Phaser.Input.Keyboard.Key;
 
     constructor(test) {
@@ -16,13 +14,6 @@ class TitleScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.atlas('sprites', 'sprites.png', 'sprites.json');
-        this.load.image('background', 'background.png');
-        this.load.image('title', 'title.png');
-        this.progressBar = this.add.graphics(0, 0);
-        this.load.on('progress', this.onLoadProgress, this);
-        this.load.on('complete', this.onLoadComplete, this);
-
         this.startKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
     }
 
@@ -37,19 +28,6 @@ class TitleScene extends Phaser.Scene {
             this.input.stopPropagation();
             this.scene.start('GameScene');
         }
-    }
-
-    onLoadComplete() {
-        console.log('onLoadComplete');
-        this.progressBar.destroy();
-    }
-
-    onLoadProgress(progress) {
-        this.progressBar
-            .clear()
-            .fillStyle(0xffffff, 0.75)
-            .fillRect(0, 0, 800 * progress, 50);
-        console.log('progress', progress);
     }
 }
 
