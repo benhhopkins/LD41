@@ -1,7 +1,6 @@
-/// <reference path="../../defs/phaser.d.ts"/>
+import makeAnimations from '../animations/animations'
 
 class LoadScene extends Phaser.Scene {
-
     private progressBar: Phaser.GameObjects.Graphics;
 
     constructor(test) {
@@ -15,7 +14,7 @@ class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.spritesheet('sprite1', 'sprites.png', {frameWidth: 32, frameHeight:32});
+        this.load.spritesheet('mecha', 'mecha.png', {frameWidth: 32, frameHeight:32});
         this.load.image('background', 'background.png');
         this.load.image('title', 'title.png');
         this.progressBar = this.add.graphics({x: 0, y: 0});
@@ -24,6 +23,7 @@ class LoadScene extends Phaser.Scene {
     }
 
     create() {
+        makeAnimations(this);
     }
 
     update(time, delta) {

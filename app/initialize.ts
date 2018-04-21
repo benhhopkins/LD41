@@ -1,16 +1,16 @@
 /// <reference path="../defs/phaser.d.ts"/>
 
-import LoadScene from './scenes/load';
-import TitleScene from './scenes/title';
-import GameScene from './scenes/game';
+import LoadScene from './scenes/loadScene';
+import TitleScene from './scenes/titleScene';
+import GameScene from './scenes/gameScene';
 
 const game = new Phaser.Game({
 
     // See <https://github.com/photonstorm/phaser/blob/master/src/boot/Config.js>
 
-    width: 800,
-    height: 600,
-    // zoom: 1,
+    width: 360,
+    height: 240,
+    zoom: 3,
     // resolution: 1,
     type: Phaser.AUTO,
     // parent: null,
@@ -38,7 +38,7 @@ const game = new Phaser.Game({
     //   target: 60,
     //   forceSetTimeout: false,
     // },
-    // pixelArt: false,
+    pixelArt: true,
     // transparent: false,
     // clearBeforeRender: true,
     // backgroundColor: 0x000000, // black

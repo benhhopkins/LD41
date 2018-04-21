@@ -1,5 +1,3 @@
-/// <reference path="../../defs/phaser.d.ts"/>
-
 class TitleScene extends Phaser.Scene {
     private startKey: Phaser.Input.Keyboard.Key;
 

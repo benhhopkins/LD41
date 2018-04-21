@@ -1,5 +1,3 @@
-/// <reference path="../../defs/phaser.d.ts"/>
-
 export class GameObject extends Phaser.GameObjects.Sprite {
 
     private startKey: Phaser.Input.Keyboard.Key;
@@ -23,7 +21,7 @@ export class GameObject extends Phaser.GameObjects.Sprite {
 
     update() {
         if (this.startKey.isDown) {
-            this.anims.play("sprite1_run");
+            this.anims.play("mechaAttack");
         }
     }
 }
