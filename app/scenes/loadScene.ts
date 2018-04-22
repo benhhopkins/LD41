@@ -14,7 +14,18 @@ class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.spritesheet('mecha', 'mecha.png', {frameWidth: 32, frameHeight:32});
+        // dropship
+        this.load.spritesheet('dropship', 'dropship.png', {frameWidth: 48, frameHeight:16});
+
+        // units
+        this.load.spritesheet('marine', 'marine.png', {frameWidth: 16, frameHeight:16});
+        this.load.spritesheet('alien', 'alien.png', {frameWidth: 24, frameHeight:24});
+
+        // tiles
+        this.load.spritesheet('ground', 'ground.png', {frameWidth: 16, frameHeight:16});
+
+        
+
         this.load.image('background', 'background.png');
         this.load.image('title', 'title.png');
         this.progressBar = this.add.graphics({x: 0, y: 0});

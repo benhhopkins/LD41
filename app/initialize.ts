@@ -8,8 +8,8 @@ const game = new Phaser.Game({
 
     // See <https://github.com/photonstorm/phaser/blob/master/src/boot/Config.js>
 
-    width: 360,
-    height: 240,
+    width: 450,
+    height: 250,
     zoom: 3,
     // resolution: 1,
     type: Phaser.AUTO,
@@ -17,15 +17,15 @@ const game = new Phaser.Game({
     // canvas: null,
     // canvasStyle: null,
     // seed: null,
-    title: '☕️ Brunch with Phaser', // 'My Phaser 3 Game'
-    url: 'https://github.com/samme/brunch-phaser-typescript',
+    title: 'LD41 Game',
+    url: '',
     version: '0.0.1',
-    // input: {
-    //   keyboard: true,
-    //   mouse: true,
-    //   touch: true,
-    //   gamepad: false
-    // },
+     input: {
+       keyboard: true,
+       mouse: false,
+       touch: false,
+       gamepad: true
+    },
     // disableContextMenu: false,
     // banner: false
     banner: {
@@ -49,13 +49,13 @@ const game = new Phaser.Game({
         // crossOrigin: 'anonymous',
         // timeout: 0
     },
-    // physics: {
-    //    default: 'arcade',
-    //    arcade: {
-    //        gravity: { y: 800 },
-    //        debug: false
-    //    }
-    // },
+    physics: {
+       default: 'arcade',
+       arcade: {
+           gravity: { y: 350 },
+           debug: false
+       }
+    },
     scene: [
         LoadScene,
         TitleScene,
