@@ -4,27 +4,40 @@ import Unit from '../objects/unit';
 
 export class Marine extends Unit {
 
-    private startKey: Phaser.Input.Keyboard.Key;
-    private jumpKey: Phaser.Input.Keyboard.Key;
-
     constructor(scene: GameScene, x: number, y: number) {
         super(scene, 'marine', x, y);
-
-        this.startKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-        this.jumpKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-
         
     }
 
     created() {
         this.body.setSize(10, 10, true);
 
-        this.unitStats.attackRange = 200;
+        this.unitStats.attackRange = 160;
         this.unitStats.attackPower = 5;
     }
 
     update() {
         super.update();
+    }
+
+    attackEffect() {
+        this.gameScene.addEffect('marineFire', 
+            this.getCenter().x + (this.flipX ? -10 : 10),
+            this.getCenter().y, this.flipX);
+        
+        var sound = this.scene.sound.add('rifle');
+        sound.play();
+    }
+
+    attackTargetEffect(target: Unit) {
+        this.gameScene.addEffect('marineHit',
+            target.getCenter().x,
+            target.getCenter().y);
+    }
+
+    dieEffect() {
+        var sound = this.scene.sound.add('marinedeath');
+        sound.play();
     }
 }
 

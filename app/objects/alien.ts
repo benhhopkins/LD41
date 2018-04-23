@@ -14,10 +14,10 @@ export class Alien extends Unit {
         this.unitStats.team = 1;
 
         this.unitStats.moveSpeed = 40;
-        this.unitStats.jumpPower = 150;
+        this.unitStats.jumpPower = 180;
         this.unitStats.jumpInterval = 200;
 
-        this.unitStats.attackRange = 22;
+        this.unitStats.attackRange = 6;
         this.unitStats.attackPower = 20;
     }
 
@@ -31,6 +31,20 @@ export class Alien extends Unit {
             this.body.velocity.x -= 40;
         else if(this.unitInput.inputRight)
             this.body.velocity.x += 40;
+    }
+
+    attackEffect() {
+        var sound = this.scene.sound.add('sword');
+        sound.play();
+    }
+
+    attackTargetEffect(target: Unit) {
+        this.gameScene.addEffect('alienHit', target.getCenter().x, target.getCenter().y);
+    }
+
+    dieEffect() {
+        var sound = this.scene.sound.add('orcdeath');
+        sound.play();
     }
 }
 
