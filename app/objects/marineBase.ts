@@ -1,6 +1,7 @@
 /// <reference path="../../defs/phaser.d.ts"/>
 import Unit from './unit';
 import Marine from './marine';
+import Sniper from './sniper';
 
 export class MarineBase extends Unit {
 
@@ -8,8 +9,8 @@ export class MarineBase extends Unit {
     marineCounter: number = 0;
     marinesToSpawn: number = 3;
 
-    constructor(scene: GameScene, x: number, y: number) {
-        super(scene, 'base', x, y, true);
+    constructor(scene: GameScene, team: number, x: number, y: number) {
+        super(scene, 'base', team, x, y, true);
         
     }
 
@@ -26,7 +27,7 @@ export class MarineBase extends Unit {
         if(this.marinesToSpawn > 0) {
             this.marineCounter++;
             if(this.marineCounter > this.marineSpawnInterval) {
-                this.gameScene.addUnit(new Marine(this.gameScene, this.getCenter().x, this.getCenter().y + 30));
+                this.gameScene.addUnit(new Sniper(this.gameScene, this.unitStats.team, this.getCenter().x, this.getCenter().y + 30));
                 this.marineCounter = 0;
                 this.marinesToSpawn--;
             }

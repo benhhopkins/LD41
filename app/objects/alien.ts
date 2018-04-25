@@ -4,21 +4,20 @@ import Unit from '../objects/unit';
 
 export class Alien extends Unit {
 
-    constructor(scene: GameScene, x: number, y: number) {
-        super(scene, 'alien', x, y);
+    constructor(scene: GameScene, team: number, x: number, y: number) {
+        super(scene, 'alien', team, x, y);
     }
 
     created() {
         this.body.setSize(14, 14, true);
 
-        this.unitStats.team = 1;
-
         this.unitStats.moveSpeed = 40;
         this.unitStats.jumpPower = 180;
-        this.unitStats.jumpInterval = 200;
 
         this.unitStats.attackRange = 6;
         this.unitStats.attackPower = 20;
+
+        this.unitAI.jumpInterval = 200;
     }
 
     update() {

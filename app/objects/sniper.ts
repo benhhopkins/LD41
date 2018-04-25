@@ -2,17 +2,20 @@
 import GameScene from '../scenes/gameScene';
 import Unit from '../objects/unit';
 
-export class Marine extends Unit {
+export class Sniper extends Unit {
 
     constructor(scene: GameScene, team: number, x: number, y: number) {
-        super(scene, 'marine', team, x, y);
+        super(scene, 'sniper', team, x, y);
+        
     }
 
     created() {
         this.body.setSize(10, 10, true);
 
-        this.unitStats.attackRange = 100;
-        this.unitStats.attackPower = 5;
+        this.unitStats.attackRange = 200;
+        this.unitStats.attackPower = 50;
+        this.unitStats.windupFrames = 120;
+        this.unitStats.cooldownFrames = 120;
     }
 
     update() {
@@ -20,16 +23,16 @@ export class Marine extends Unit {
     }
 
     attackEffect() {
-        this.gameScene.addEffect('marineFire', 
-            this.getCenter().x + (this.flipX ? -10 : 10),
+        this.gameScene.addEffect('sniperFire', 
+            this.getCenter().x + (this.flipX ? -20 : 20),
             this.getCenter().y, this.flipX);
         
-        var sound = this.scene.sound.add('marineFire');
+        var sound = this.scene.sound.add('sniperFire');
         sound.play();
     }
 
     attackTargetEffect(target: Unit) {
-        this.gameScene.addEffect('marineHit',
+        this.gameScene.addEffect('sniperHit',
             target.getCenter().x,
             target.getCenter().y);
     }
@@ -40,4 +43,4 @@ export class Marine extends Unit {
     }
 }
 
-export default Marine;
+export default Sniper;

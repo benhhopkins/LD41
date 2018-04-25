@@ -1,8 +1,6 @@
-import GameScene from '../scenes/gameScene';
+import { Unit, UnitState } from './unit';
 
-export class Dropship extends Phaser.GameObjects.Sprite {
-
-    gameScene: GameScene;
+export class Dropship extends Unit {
 
     up: Phaser.Input.Keyboard.Key;
     down: Phaser.Input.Keyboard.Key;
@@ -14,15 +12,18 @@ export class Dropship extends Phaser.GameObjects.Sprite {
 
     maxUpVel: number = -150;
     maxDownVel: number = 200;
-    maxSpeed: number = 200;
+    maxSpeed: number = 150;
+    acceleration: number = 4;
+    drag: number = 2.5;
 
-    health: number = 100;
-    cargoBaySize: number = 3;
+    cargoBaySize: number = 10;
     cargoBay: Unit[];
     dropInterval: number = 0;
 
-    glideInterval : number = 20;
-    glideCounter : number = 0;
+    glideInterval: number = 20;
+    glideCounter: number = 0;
+    turnCounter: number = 0;
+    turnLeft: boolean = false;
 
     pullSound: Phaser.Sound.BaseSound;
     pickupSound: Phaser.Sound.BaseSound;
@@ -30,12 +31,10 @@ export class Dropship extends Phaser.GameObjects.Sprite {
     pullEffect: Phaser.GameObjects.Sprite;
     cargoText: Phaser.GameObjects.Sprite;
 
-    constructor(scene: GameScene, x: number, y: number) {
-        super(scene, x, y, "dropship");
+    constructor(scene: GameScene, team: number, x: number, y: number) {
+        super(scene,"dropship", team, x, y);
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this);
-        
-        this.gameScene = scene;
 
         this.up = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
         this.down = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
@@ -60,52 +59,61 @@ export class Dropship extends Phaser.GameObjects.Sprite {
         this.cargoText.setVisible(false);
         this.cargoText.setScrollFactor(0, 0);
     }
+
+    created() {
+        this.body.setSize(40, 20, true);
+
+        this.unitStats.flying = true;
+        this.body.allowGravity = false;
+
+        this.unitStats.health = 300;
+        this.unitStats.maxHealth = 300;
+
+        this.unitAI.targetPriority = 0;
+    }
     
     update() {
-        if(!this.anims.currentAnim)
-        {
-            this.anims.play('dropshipIdle');
-            this.body.allowGravity = false;
-        }
-
-        this.updateControl();
-        
+        super.update();
     }
+
+    updateAI() {} // override so AI does nothing
 
     updateControl() {
         this.glideCounter++;
 
         if(this.up.isDown || 
             (this.gameScene.gamepad && this.gameScene.gamepad.buttons[this.gameScene.gamepadConfig.UP].pressed)) {
-            this.body.velocity.y -= 2;
+            this.body.velocity.y -= this.acceleration;
             if(this.glideCounter > this.glideInterval) {
                 this.glideCounter = 0;
                 this.gameScene.addEffect('dropshipGlide', this.getCenter().x - 12, this.getCenter().y + 8, false);
                 this.gameScene.addEffect('dropshipGlide', this.getCenter().x + 12, this.getCenter().y + 8, false);
             }
         }
-        else {
-            this.body.velocity.y += 0.5;
-        }
         if(this.down.isDown) {
-            this.body.velocity.y += 2;        
+            this.body.velocity.y += this.acceleration;        
             if(this.glideCounter > this.glideInterval) {
                 this.glideCounter = 0;
                 this.gameScene.addEffect('dropshipGlide', this.getCenter().x, this.getCenter().y - 8, false, 180);
             }
         }
+        if(!this.up.isDown && !this.down.isDown) {
+            this.body.velocity.y -= Math.sign(this.body.velocity.y) * this.drag;
+            if(Math.abs(this.body.velocity.y) < 2)
+                this.body.velocity.y = 0;
+        }
         this.body.velocity.y = Phaser.Math.Clamp(this.body.velocity.y, this.maxUpVel, this.maxDownVel);
         if(this.body.velocity.y > this.maxUpVel && Phaser.Input.Keyboard.JustDown(this.up)) {
             if(this.body.touching.down)
-                this.body.velocity.y -= 60;
+                this.body.velocity.y -= this.acceleration * 5;
             else
-                this.body.velocity.y -= 30;
+                this.body.velocity.y -= this.acceleration * 3;
 
             this.gameScene.addEffect('dropshipThrust', this.getCenter().x - 12, this.getCenter().y + 8, false);
             this.gameScene.addEffect('dropshipThrust', this.getCenter().x + 12, this.getCenter().y + 8, false);
         }
         else if(this.body.velocity.y < this.maxDownVel && Phaser.Input.Keyboard.JustDown(this.down)) {
-            this.body.velocity.y += 30;
+            this.body.velocity.y += this.acceleration * 3;
 
             this.gameScene.addEffect('dropshipThrust', this.getCenter().x, this.getCenter().y - 8, false, 180);
         }
@@ -113,7 +121,11 @@ export class Dropship extends Phaser.GameObjects.Sprite {
 
 
         if(this.left.isDown) {
-            this.body.velocity.x -= 3;
+            this.body.velocity.x -= this.acceleration;
+            if(!this.flipX) {
+                this.turnCounter = 30 - this.turnCounter;
+                this.turnLeft = true;
+            }
             this.flipX = true;
             if(this.glideCounter > this.glideInterval) {
                 this.glideCounter = 0;
@@ -121,7 +133,11 @@ export class Dropship extends Phaser.GameObjects.Sprite {
             }
         }
         if(this.right.isDown) {
-            this.body.velocity.x += 3;
+            this.body.velocity.x += this.acceleration;
+            if(this.flipX) {
+                this.turnCounter = 30 - this.turnCounter;
+                this.turnLeft = false;
+            }
             this.flipX = false;
             if(this.glideCounter > this.glideInterval) {
                 this.glideCounter = 0;
@@ -129,17 +145,17 @@ export class Dropship extends Phaser.GameObjects.Sprite {
             }
         }
         if(!this.left.isDown && !this.right.isDown) {
-            this.body.velocity.x -= Math.sign(this.body.velocity.x) * 2;
+            this.body.velocity.x -= Math.sign(this.body.velocity.x) * this.drag;
             if(Math.abs(this.body.velocity.x) < 2)
                 this.body.velocity.x = 0;
         }
         this.body.velocity.x = Phaser.Math.Clamp(this.body.velocity.x, -this.maxSpeed, this.maxSpeed);
         if(this.body.velocity.x > -this.maxSpeed && Phaser.Input.Keyboard.JustDown(this.left)) {
-            this.body.velocity.x -= 30;
+            this.body.velocity.x -= this.acceleration * 3;
             this.gameScene.addEffect('dropshipThrust', this.getCenter().x + 26, this.getCenter().y, false, -90);
         }
         else if(this.body.velocity.x < this.maxSpeed && Phaser.Input.Keyboard.JustDown(this.right)) {
-            this.body.velocity.x += 30;
+            this.body.velocity.x += this.acceleration * 3;
             this.gameScene.addEffect('dropshipThrust', this.getCenter().x - 26, this.getCenter().y, false, 90);
         }
         this.body.velocity.x = Phaser.Math.Clamp(this.body.velocity.x, -this.maxSpeed, this.maxSpeed);
@@ -166,7 +182,7 @@ export class Dropship extends Phaser.GameObjects.Sprite {
                 if(!this.pullSound.isPlaying)
                     this.pullSound.play();
                 this.pullEffect.setVisible(true);
-                this.pullEffect.setPosition(this.getCenter().x, this.getCenter().y + 70);
+                this.pullEffect.setPosition(this.getCenter().x, this.getCenter().y + 67);
 
                 this.cargoText.setVisible(false);
             }
@@ -192,13 +208,15 @@ export class Dropship extends Phaser.GameObjects.Sprite {
     }
 
     pickingUp() {
-        for(let object of this.gameScene.unitsByTeam[0].getChildren()) {
-            if(object.active &&
+        for(let object of this.gameScene.players[0].units.getChildren()) {
+            if(object != this &&
+                object.active &&
                 object.unitStats.health > 0 &&
                 object.body &&
+                !object.isBuilding &&
                 object.getCenter().y - this.getCenter().y > -10 &&
                 object.getCenter().y - this.getCenter().y < 250 &&
-                Math.abs(object.getCenter().x - this.getCenter().x) < 32)
+                Math.abs(object.getCenter().x - this.getCenter().x) < 16)
             {
                 if(object.getCenter().y - this.getCenter().y < 10) {
                     
@@ -228,6 +246,20 @@ export class Dropship extends Phaser.GameObjects.Sprite {
             object.body.velocity = new Phaser.Math.Vector2(this.body.velocity.x / 1.3 + addXVel, this.body.velocity.y - 10 + addYVel);
 
             this.dropSound.play();
+        }
+    }
+
+    updateAnimations() {
+        // count down regardless of whether we can play the animation
+        if(this.turnCounter > 0)
+            this.turnCounter--;
+
+        if(this.turnCounter > 0 && this.unitState == UnitState.Idle) {
+            this.playAnimation('Turn');
+            this.anims.setCurrentFrame(this.anims.currentAnim.getFrameByProgress(this.turnCounter / this.unitStats.cooldownFrames));
+        }
+        else {
+            super.updateAnimations();
         }
     }
 }

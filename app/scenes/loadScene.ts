@@ -16,19 +16,20 @@ class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        // dropship
-        this.load.spritesheet('dropship', 'dropship.png', {frameWidth: 48, frameHeight: 16});
 
-        // units
-        this.load.spritesheet('marine', 'marine.png', {frameWidth: 16, frameHeight: 16});
-        this.load.spritesheet('alien', 'alien.png', {frameWidth: 24, frameHeight: 24});
+        // units and buildings
+        for(let color of ['red', 'blue'])
+        {
+            this.load.spritesheet(color + 'dropship', color + '/dropship.png', {frameWidth: 64, frameHeight: 64});
+            this.load.spritesheet(color + 'marine', color + '/marine.png', {frameWidth: 32, frameHeight: 32});
+            this.load.spritesheet(color + 'sniper', color + '/sniper.png', {frameWidth: 32, frameHeight: 32});
+            this.load.spritesheet(color + 'alien', color + '/alien.png', {frameWidth: 32, frameHeight: 32});
+            this.load.spritesheet(color + 'base', color + '/base.png', {frameWidth: 80, frameHeight: 80});
+        }
 
         // effects
         this.load.spritesheet('effect', 'effect.png', {frameWidth: 32, frameHeight: 32});
         this.load.spritesheet('pull', 'pull.png', {frameWidth: 64, frameHeight: 128});
-
-        // buildings
-        this.load.spritesheet('base', 'base.png', {frameWidth: 80, frameHeight: 80});
 
         // tiles
         this.load.spritesheet('ground', 'ground.png', {frameWidth: 16, frameHeight: 16});
@@ -48,9 +49,10 @@ class LoadScene extends Phaser.Scene {
         this.load.audio('pickup', ['pickup.wav']);
         this.load.audio('dropoff', ['dropoff.wav']);
         this.load.audio('sword', ['sword.wav']);
-        this.load.audio('rifle', ['rifle.wav']);
+        this.load.audio('marineFire', ['marineFire.wav']);
         this.load.audio('marinedeath', ['marinedeath.wav']);
         this.load.audio('orcdeath', ['orcdeath.wav']);
+        this.load.audio('sniperFire', ['sniperFire.wav']);
 
 
         /*

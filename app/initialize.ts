@@ -8,9 +8,9 @@ const game = new Phaser.Game({
 
     // See <https://github.com/photonstorm/phaser/blob/master/src/boot/Config.js>
 
-    width: 450,
-    height: 250,
-    zoom: 3,
+    width: 960,
+    height: 540,
+    zoom: 2,
     // resolution: 1,
     type: Phaser.AUTO,
     // parent: null,

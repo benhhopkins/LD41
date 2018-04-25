@@ -8,16 +8,14 @@ export class AlienBase extends Unit {
     alienCounter: number = 0;
     aliensToSpawn: number = 2;
 
-    constructor(scene: GameScene, x: number, y: number) {
-        super(scene, 'base', x, y, true);
+    constructor(scene: GameScene, team: number, x: number, y: number) {
+        super(scene, 'base', team, x, y, true);
         
     }
 
     created() {
         //this.body.setSize(10, 10, true);
         this.anims.play('alienBase');
-
-        this.unitStats.team = 1;
         this.unitStats.health = 100;
     }
 
@@ -27,7 +25,7 @@ export class AlienBase extends Unit {
         if(this.aliensToSpawn > 0) {
             this.alienCounter++;
             if(this.alienCounter > this.alienSpawnInterval) {
-                this.gameScene.addUnit(new Alien(this.gameScene, this.getCenter().x, this.getCenter().y + 30));
+                this.gameScene.addUnit(new Alien(this.gameScene, this.unitStats.team, this.getCenter().x, this.getCenter().y + 30));
                 this.alienCounter = 0;
                 this.aliensToSpawn--;
             }

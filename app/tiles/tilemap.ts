@@ -10,12 +10,15 @@ export class Tilemap extends Phaser.GameObjects.GameObject {
     mapCollision: Phaser.Physics.Arcade.StaticGroup;
     map: Tile[][];
 
+    spawns: Phaser.Math.Vector2[];
+
     constructor(scene: GameScene, worldSize: Phaser.Math.Vector2) {
         super(scene, 'tilemap');
         this.scene.add.existing(this);
         
         this.gameScene = scene;
         this.mapCollision = this.scene.physics.add.staticGroup();
+        this.spawns = [];
 
         this.size = new Phaser.Math.Vector2(Math.ceil(worldSize.x / 16), Math.ceil(worldSize.y / 16));
         this.map = [];
@@ -29,12 +32,11 @@ export class Tilemap extends Phaser.GameObjects.GameObject {
 
                     if(!this.map[i][j-1]) {
                         this.map[i][j].setFloor(true);
-                        if(i == 10) {
-                            this.gameScene.marineBase = this.gameScene.addUnit(new MarineBase(this.gameScene, i * 16 - 40, j * 16 - 45));
-                        }
-                        else if(i == this.size.x - 10) {
-                            this.gameScene.alienBase = this.gameScene.addUnit(new AlienBase(this.gameScene, i * 16 - 40, j * 16 - 45));
-                        }
+                        
+                        if(i == 1)
+                            this.spawns.push(new Phaser.Math.Vector2(i * 16, j * 16));
+                        else if(i == this.size.x - 10)
+                            this.spawns.push(new Phaser.Math.Vector2(i * 16, j * 16));
                     }
                     
                     this.mapCollision.add(this.map[i][j]);
@@ -56,19 +58,7 @@ export class Tilemap extends Phaser.GameObjects.GameObject {
         }
     }
 
-    init(data) {
-        
-    }
-
-    preload() {
-    }
-
-    create() {
-        
-    }
-
-    update() {
-    }
+    
 }
 
 export default Tilemap;

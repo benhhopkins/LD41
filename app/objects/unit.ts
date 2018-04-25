@@ -2,7 +2,7 @@ import GameScene from '../scenes/gameScene';
 import { DistanceSqRects } from '../other/util';
 import { DistanceSq } from '../other/util';
 
-enum UnitState {
+export enum UnitState {
     Idle = 0,
     Windup,
     Cooldown,
@@ -13,15 +13,14 @@ enum UnitState {
 class UnitStats {
     team: number = 0;
 
-    hasGravity: boolean = true;
     moveSpeed: number = 30;
     acceleration: number = 3;
     jumpPower: number = 120;
-    jumpInterval: number = 500;
     jumpCountdown: number = 500;
+    flying: boolean = false;
     
     health: number = 100;
-    aquireRange: number = 300;
+    maxHealth: number = 100;
     attackPower: number = 10;
     attackRange: number = 100;
     windupFrames: number = 20;
@@ -39,6 +38,12 @@ class UnitInput {
     inputAttack: boolean = false;    
 }
 
+class UnitAIValues {
+    jumpInterval: number = 500;
+    aquireRange: number = 300;
+    targetPriority: number = 5;
+}
+
 export class Unit extends Phaser.Physics.Arcade.Sprite {
 
     gameScene: GameScene;
@@ -48,25 +53,30 @@ export class Unit extends Phaser.Physics.Arcade.Sprite {
     unitState: UnitState;
     unitStats: UnitStats;
     unitInput: UnitInput;
+    unitAI: UnitAIValues;
+
     unitTarget: Unit;
     targetEvalCounter: number = 0;
 
-    constructor(scene: GameScene, animName: string, x: number, y: number, isBuilding?: boolean) {
-        super(scene, x, y, animName);
+    constructor(scene: GameScene, animName: string, team: number, x: number, y: number, isBuilding?: boolean) {
+        super(scene, x, y, (team == 0 ? 'blue' : 'red') + animName);
         
         if(isBuilding === undefined)
             isBuilding = false;
 
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this, isBuilding);
+        this.setCollideWorldBounds(true);
 
         this.gameScene = scene;
-        this.animName = animName;
+        this.animName = (team == 0 ? 'blue' : 'red') + animName;
         
         this.isBuilding = isBuilding;
         this.unitState = UnitState.Idle;
         this.unitStats = new UnitStats();
+        this.unitStats.team = team;
         this.unitInput = new UnitInput();
+        this.unitAI = new UnitAIValues();
         this.unitTarget = null;
     }
 
@@ -77,9 +87,11 @@ export class Unit extends Phaser.Physics.Arcade.Sprite {
     update() {
         if(this.active && !this.isBuilding) {
             this.updateState();
-            this.updateAI();
-            this.updateControl();
-            this.updateAnimations();
+            if(this.active) {
+                this.updateAI();
+                this.updateControl();
+                this.updateAnimations();
+            }
         }
 
         if(this.isBuilding && this.unitState == UnitState.Dead)
@@ -171,7 +183,7 @@ export class Unit extends Phaser.Physics.Arcade.Sprite {
                     this.unitStats.jumpCountdown <= 0 ||
                         (this.unitStats.jumpCountdown < 1000 &&
                         (this.unitInput.inputLeft && this.body.touching.left) || (this.unitInput.inputRight && this.body.touching.right))) &&
-                    this.body.touching.down && this.body.velocity.y > -this.unitStats.jumpPower / 2)
+                    (this.body.touching.down || this.unitStats.flying))
                 {
                     this.jump();
                 }
@@ -236,26 +248,45 @@ export class Unit extends Phaser.Physics.Arcade.Sprite {
             //this.anims.setProgress(this.unitStats.currentActionFrames / this.unitStats.cooldownFrames);
             this.anims.setCurrentFrame(this.anims.currentAnim.getFrameByProgress(this.unitStats.currentActionFrames / this.unitStats.cooldownFrames));
         }
-        else if(!this.body.touching.down)
-        {
-            if(this.body.velocity.y < 0) 
-                this.playAnimation('AirUp');
+        else if(!this.unitStats.flying) {
+            if(!this.body.touching.down)
+            {
+                if(this.body.velocity.y < 0) 
+                    this.playAnimation('AirUp');
+                else
+                    this.playAnimation('AirDown');
+            }
+            else if(Math.abs(this.body.velocity.x) > 0)
+            {
+                this.playAnimation('Move');
+            }
             else
-                this.playAnimation('AirDown');
+            {
+                this.playAnimation('Idle');
+            }
         }
-        else if(Math.abs(this.body.velocity.x) > 0)
-        {
-            this.playAnimation('Move');
-        }
-        else
-        {
-            this.playAnimation('Idle');
+        else if(this.unitStats.flying){
+            if(Math.abs(this.body.velocity.x) > 50)
+            {
+                this.playAnimation('Move');
+            }
+            else if(Math.abs(this.body.velocity.y) > 30)
+            {
+                if(this.body.velocity.y < 0) 
+                    this.playAnimation('AirUp');
+                else
+                    this.playAnimation('AirDown');
+            }
+            else
+            {
+                this.playAnimation('Idle');
+            }
         }
     }
 
     jump() {
         this.body.velocity.y -= this.unitStats.jumpPower;
-        this.unitStats.jumpCountdown = Math.random() * this.unitStats.jumpInterval;
+        this.unitStats.jumpCountdown = Math.random() * this.unitAI.jumpInterval;
     }
 
     executeAttack()
@@ -312,21 +343,23 @@ export class Unit extends Phaser.Physics.Arcade.Sprite {
             if(!this.unitTarget.active ||
                 !this.unitTarget.body ||
                 this.unitTarget.unitStats.health <= 0 ||
-                DistanceSqRects(this.unitTarget.body, this.body) > this.unitStats.aquireRange *  this.unitStats.aquireRange)
+                DistanceSqRects(this.unitTarget.body, this.body) > this.unitAI.aquireRange *  this.unitAI.aquireRange)
                 this.unitTarget = null;
             else
                 return true;
         }
 
         let targetTeam = this.unitStats.team == 0 ? 1 : 0;
-        let minDistance = this.unitStats.aquireRange *  this.unitStats.aquireRange;
-        for(let object of this.gameScene.unitsByTeam[targetTeam].getChildren())
+        let minDistance = this.unitAI.aquireRange *  this.unitAI.aquireRange;
+        let topTargetPriority = 1;
+        for(let object of this.gameScene.players[targetTeam].units.getChildren())
         {
             if(object.active && object.unitStats.health > 0 && object.body) {
                 let distance = DistanceSq(object.getCenter(), this.getCenter());
-                if(distance < minDistance && (!this.unitTarget || !object.isBuilding)) { // prioritize closest unit
+                if(distance < minDistance && object.unitAI.targetPriority >= topTargetPriority) { // prioritize closest unit
                     this.unitTarget = object;
                     minDistance = distance;
+                    topTargetPriority = object.unitAI.targetPriority;
                 }
             }
         }
